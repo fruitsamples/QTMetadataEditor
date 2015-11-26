@@ -130,7 +130,10 @@
     }
 	else
     {
-	    success = [super writeWithBackupToFile:fullDocumentPath ofType:type saveOperation:saveOperation];
+		NSError *error = nil;
+		success = [super writeSafelyToURL:[NSURL URLWithString:fullDocumentPath] ofType:type forSaveOperation:saveOperation error:&error];
+		if (!success && error != nil)
+			NSLog(@"error writing out file: %@",[error localizedDescription]);
 	}
     return success;
 }
@@ -154,11 +157,11 @@
     return success;
 }
 
-- (id)openDocumentWithContentsOfFile:(NSString *)fileName display:(BOOL)displayFlag
+- (id)openDocumentWithContentsOfFile:(NSURL *)fileURL display:(BOOL)displayFlag
 {
     NSDocumentController *sharedDocController = [NSDocumentController sharedDocumentController];
 
-    MovieDocument *movieDocument = [sharedDocController documentForFileName:fileName];
+    MovieDocument *movieDocument = [sharedDocController documentForURL:fileURL];
 
     // first check whether we already have a document for this file
     if (movieDocument)
@@ -173,7 +176,8 @@
         // we always create a movie document regardless of type
     
         // init
-        movieDocument = [[[MovieDocument allocWithZone:[self zone]] initWithContentsOfFile:fileName ofType:@"mov"] autorelease];
+		NSError *error = nil;
+        movieDocument = [[[MovieDocument allocWithZone:[self zone]] initWithContentsOfURL:fileURL ofType:@"mov" error:&error] autorelease];
 
         // set up the document
         if (movieDocument)
@@ -182,16 +186,15 @@
             [sharedDocController addDocument:movieDocument];
 
             // set up the document
-            if ([sharedDocController shouldCreateUI])
-            {
-                [movieDocument makeWindowControllers];
-			
-                if (displayFlag)
-                {
-                    [movieDocument showWindows];
-                }
-            }
-        }
+			[movieDocument makeWindowControllers];
+		
+			if (displayFlag)
+			{
+				[movieDocument showWindows];
+			}
+        } else if (error != nil){
+			NSLog(@"error opening document:%@", [error localizedDescription]);
+		}
     }
     return movieDocument;
 }
@@ -205,7 +208,7 @@
     // files are filtered through the panel:shouldShowFilename: method above
     if ([openPanel runModalForTypes:nil] == NSOKButton) 
 	{
-        [self openDocumentWithContentsOfFile:[[openPanel filenames] lastObject] display:YES];
+        [self openDocumentWithContentsOfFile:[[openPanel URLs] lastObject] display:YES];
     }
 }
 

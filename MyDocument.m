@@ -539,7 +539,7 @@ BOOL LocalEmptyMovieMetadataContainers( Movie theMovie );
 		// NOTE: in addition to the other data types, deal with containers!
 		default:
 			dataValue = (NSData*)data;
-			NSLog ([NSString stringWithFormat:@"(unable to read value for type: %u, reading as binary)", dataType]);
+			NSLog (@"(unable to read value for type: %u, reading as binary)", dataType);
 			break;
 	}
 
@@ -840,7 +840,7 @@ id LocalMetaDataGetItemValue(QTMetaDataRef metadataContainer, QTMetaDataItem met
 							if (propValueSize == sizeof(short))
 								finalValueObject = [NSNumber numberWithShort:(NSSwapBigShortToHost(*((short *)propValuePtr)))];
 							else if (propValueSize == sizeof(long))
-								finalValueObject = [NSNumber numberWithLong:(NSSwapBigShortToHost(*((long *)propValuePtr)))];
+								finalValueObject = [NSNumber numberWithLong:(NSSwapBigLongToHost(*((long *)propValuePtr)))];
 							else if (propValueSize == sizeof(int))
 								finalValueObject = [NSNumber numberWithLong:(NSSwapBigIntToHost(*((int *)propValuePtr)))];
 							break;
@@ -864,7 +864,7 @@ id LocalMetaDataGetItemValue(QTMetaDataRef metadataContainer, QTMetaDataItem met
 							
 						// NOTE: in addition to the other data types, deal with containers!
 						default:
-							NSLog ([NSString stringWithFormat:@"(unable to read value for type: %u, storing as binary)", keyDataType]);
+							NSLog (@"(unable to read value for type: %u, storing as binary)", keyDataType);
 							finalValueObject = [NSData dataWithBytes:propValuePtr length:propValueSize];
 							break;
 					}
